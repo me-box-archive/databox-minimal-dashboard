@@ -1,0 +1,30 @@
+{
+  "name": "databox-minimal-dashboard",
+  "version": "0.1.0",
+  "description": "A minimal placeholder databox dashboard web server running in a Docker container",
+  "scripts": {
+    "start": "lsc server.ls"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yousefamar/databox-minimal-dashboard.git"
+  },
+  "keywords": [
+    "docker",
+    "databox",
+    "personal",
+    "data",
+    "dashboard"
+  ],
+  "author": "Yousef Amar <yousef@amar.io> (http://yousefamar.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yousefamar/databox-minimal-dashboard/issues"
+  },
+  "homepage": "https://github.com/yousefamar/databox-minimal-dashboard#readme",
+  "dependencies": {
+    "body-parser": "^1.14.2",
+    "express": "^4.13.4",
+    "livescript": "^1.4.0"
+  }
+}
