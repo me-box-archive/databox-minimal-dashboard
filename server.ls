@@ -2,7 +2,16 @@ require! { process, dockerode: Docker, express, 'body-parser' }
 
 docker = new Docker!
 
-err, container <-! docker.create-container Image: \docker/whalesay Cmd: ['cowsay', 'boo'] name: \cowsay Tty: true
+err, containers <-! docker.list-containers  all: true
+console.log containers
+
+err, container <-! docker.create-container Image: \databox-data-broker:latest name: \broker Tty: true
+
+# TODO: Find some way to trap all exit and clean up asynchronously
+process.on \SIGINT !->
+  <-! container.stop
+  <-! container.remove
+  process.exit!
 
 err, stream <-! container.attach stream: true stdout: true stderr: true
 stream.pipe process.stdout
