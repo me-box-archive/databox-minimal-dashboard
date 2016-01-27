@@ -18,6 +18,10 @@ stream.pipe process.stdout
 
 err, data <-! broker.start
 
+err, hello-world <-! docker.create-container Image: \databox-hello-world:latest name: \hello-world
+
+err, data <-! hello-world.start PortBindings: '8080/tcp': [ HostPort: \8081 ]
+
 app = express!
 
 app.enable 'trust proxy'
