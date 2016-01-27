@@ -5,18 +5,18 @@ docker = new Docker!
 err, containers <-! docker.list-containers  all: true
 console.log containers
 
-err, container <-! docker.create-container Image: \databox-data-broker:latest name: \broker Tty: true
+err, broker <-! docker.create-container Image: \databox-data-broker:latest name: \broker Tty: true
 
 # TODO: Find some way to trap all exit and clean up asynchronously
 process.on \SIGINT !->
-  <-! container.stop
-  <-! container.remove
+  <-! broker.stop
+  <-! broker.remove
   process.exit!
 
-err, stream <-! container.attach stream: true stdout: true stderr: true
+err, stream <-! broker.attach stream: true stdout: true stderr: true
 stream.pipe process.stdout
 
-err, data <-! container.start
+err, data <-! broker.start
 
 app = express!
 
@@ -26,20 +26,15 @@ app.use express.static 'static'
 
 app.use body-parser.urlencoded extended: false
 
-handle-vote = (req, res, vote) !->
-  unless req.body.title
-    res.write-head 400
-    res.end!
-    return
+app.post '/list-apps' (req, res) !->
+  err, containers <-! docker.list-containers all: req.body.all
+  containers |> JSON.stringify |> res.end
 
-app.post '/poll/yes' (req, res) !-> handle-vote req, res, \yes
+app.post '/list-store' (req, res) !->
+  res.end '{}'
 
-app.post '/poll/no'  (req, res) !-> handle-vote req, res, \no
+app.post '/400' (req, res) !->
+  res.write-head 400
+  res.end!
 
-app.post '/poll/stats' (req, res) !->
-  unless req.body.title
-    res.write-head 400
-    res.end!
-    return
-
-app.listen (process.env.PORT || 8080)
+app.listen (process.env.PORT or 8080)

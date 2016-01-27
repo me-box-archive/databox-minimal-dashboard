@@ -10,6 +10,27 @@
 			$(function() {
 				$('#tabs').tabs();
 			});
+
+			$.post('/list-apps', { all: false }, function(data) {
+				data = JSON.parse(data);
+				for (var i = 0, len = data.length; i < len; ++i) {
+					$('<li></li>').text(JSON.stringify(data[i])).appendTo('#running .app-list');
+				}
+			});
+
+			$.post('/list-apps', { all: true }, function(data) {
+				data = JSON.parse(data);
+				for (var i = 0, len = data.length; i < len; ++i) {
+					$('<li></li>').text(JSON.stringify(data[i])).appendTo('#all .app-list');
+				}
+			});
+
+			$.post('/list-store', {}, function(data) {
+				data = JSON.parse(data);
+				for (var i = 0, len = data.length; i < len; ++i) {
+					$('<li></li>').text(JSON.stringify(data[i])).appendTo('#store .app-list');
+				}
+			});
 		</script>
 	</head>
 	<body>
@@ -18,12 +39,25 @@
 				<li><a href="#running">Running Apps</a></li>
 				<li><a href="#all">All Apps</a></li>
 				<li><a href="#store">Store</a></li>
+				<li><a href="#data">My Data</a></li>
 			</ul>
 			<div id="running">
+				<ul class="app-list"></ul>
 			</div>
 			<div id="all">
+				<ul class="app-list"></ul>
 			</div>
 			<div id="store">
+				<ul class="app-list">
+					<!-- Hardcoded placeholders -->
+					<li>
+						Hello, world!
+						<button>Launch</button>
+					</li>
+				</ul>
+			</div>
+			<div id="data">
+				<p>Some kind of native data overview app</p>
 			</div>
 		</div>
 	</body>
