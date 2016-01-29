@@ -18,9 +18,9 @@ stream.pipe process.stdout
 
 err, data <-! broker.start
 
-err, hello-world <-! docker.create-container Image: \databox-hello-world:latest name: \hello-world
+#err, hello-world <-! docker.create-container Image: \databox-hello-world:latest name: \hello-world
 
-err, data <-! hello-world.start PortBindings: '8080/tcp': [ HostPort: \8081 ]
+#err, data <-! hello-world.start PortBindings: '8080/tcp': [ HostPort: \8081 ]
 
 app = express!
 
@@ -29,6 +29,26 @@ app.enable 'trust proxy'
 app.use express.static 'static'
 
 app.use body-parser.urlencoded extended: false
+
+app.post '/get-broker-status' (req, res) !->
+  err, containers <-! docker.list-containers  all: true
+  for container in containers
+    if ~container.Names.index-of \/broker
+      res.end container.Status
+      return
+  res.end 'Never ran'
+
+app.post '/toggle-broker-status' (req, res) !->
+  err, containers <-! docker.list-containers  all: true
+  for container in containers
+    if ~container.Names.index-of \/broker
+      container = docker.get-container container.Id
+        ..start !->
+          err, data <-! container.inspect
+          console.log data
+          res.end data.Status
+      return
+  res.end 'Never ran'
 
 app.post '/list-apps' (req, res) !->
   err, containers <-! docker.list-containers all: req.body.all
