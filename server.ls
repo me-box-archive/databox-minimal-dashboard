@@ -2,21 +2,16 @@ require! { process, dockerode: Docker, express, 'body-parser' }
 
 docker = new Docker!
 
-err, containers <-! docker.list-containers  all: true
-console.log containers
-
-err, broker <-! docker.create-container Image: \databox-data-broker:latest name: \broker Tty: true
-
-# TODO: Find some way to trap all exit and clean up asynchronously
-process.on \SIGINT !->
-  <-! broker.stop
-  <-! broker.remove
-  process.exit!
-
-err, stream <-! broker.attach stream: true stdout: true stderr: true
-stream.pipe process.stdout
-
-err, data <-! broker.start
+get-broker = (callback) ->
+  err, containers <-! docker.list-containers  all: true
+  for container in containers
+    if ~container.Names.index-of \/broker
+      container.Id |> docker.get-container |> callback
+      return
+  err, broker <-! docker.create-container Image: \databox-data-broker:latest name: \broker Tty: true
+  err, stream <-! broker.attach stream: true stdout: true stderr: true
+  stream.pipe process.stdout
+  callback broker
 
 #err, hello-world <-! docker.create-container Image: \databox-hello-world:latest name: \hello-world
 
@@ -31,24 +26,21 @@ app.use express.static 'static'
 app.use body-parser.urlencoded extended: false
 
 app.post '/get-broker-status' (req, res) !->
-  err, containers <-! docker.list-containers  all: true
-  for container in containers
-    if ~container.Names.index-of \/broker
-      res.end container.Status
-      return
-  res.end 'Never ran'
+  broker <-! get-broker
+  err, data <-! broker.inspect
+  res.end data.State.Status
 
 app.post '/toggle-broker-status' (req, res) !->
-  err, containers <-! docker.list-containers  all: true
-  for container in containers
-    if ~container.Names.index-of \/broker
-      container = docker.get-container container.Id
-        ..start !->
-          err, data <-! container.inspect
-          console.log data
-          res.end data.Status
-      return
-  res.end 'Never ran'
+  broker <-! get-broker
+  err, data <-! broker.inspect
+  if data.State.Status is \created or data.State.Status is \exited
+    err, data <-! broker.start
+    err, data <-! broker.inspect
+    res.end data.State.Status
+  else
+    err, data <-! broker.stop
+    err, data <-! broker.inspect
+    res.end data.State.Status
 
 app.post '/list-apps' (req, res) !->
   err, containers <-! docker.list-containers all: req.body.all

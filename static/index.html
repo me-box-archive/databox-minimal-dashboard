@@ -62,12 +62,15 @@
 				}
 			});
 
-			$.post('/get-broker-status', {}, function(status) {
-				$('#broker-status').text(status);
-			});
+			function updateStatus() {
+				$.post('/get-broker-status', {}, function(status) {
+					$('#broker-status').text(status);
+				});
+			}
+			updateStatus();
+			setInterval(updateStatus, 2000);
 
 			$('#broker-status-toggle-button').click(function(event) {
-				console.log('hi');
 				$.post('/toggle-broker-status', {}, function(status) {
 					$('#broker-status').text(status);
 				});
