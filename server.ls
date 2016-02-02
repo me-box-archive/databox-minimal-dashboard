@@ -1,4 +1,4 @@
-require! { process, dockerode: Docker, express, 'body-parser' }
+require! { process, dockerode: Docker, express, 'body-parser', request }
 
 docker = new Docker!
 
@@ -47,7 +47,11 @@ app.post '/list-apps' (req, res) !->
   containers |> JSON.stringify |> res.end
 
 app.post '/list-store' (req, res) !->
-  res.end '{}'
+  (error, response, body) <-! request 'https://amar.io:5000/v2/_catalog'
+  if error
+    error |> JSON.stringify |> res.end
+    return
+  res.end body
 
 app.post '/400' (req, res) !->
   res.write-head 400
