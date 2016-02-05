@@ -22,15 +22,7 @@
 				<ul class="app-list"></ul>
 			</div>
 			<div id="store">
-				<h4>Hardcoded Placeholders</h4>
-				<ul class="app-list-hardcoded">
-					<!-- Hardcoded placeholders -->
-					<li>
-						Hello, world!
-						<button>Launch</button>
-					</li>
-				</ul>
-				<h4>Apps on Private Docker Registry</h4>
+				<h4>Repositories on Private Docker Registry</h4>
 				<p>Catalogue source: <a href="https://amar.io:5000/v2/_catalog">https://amar.io:5000/v2/_catalog</a></p>
 				<ul class="app-list">
 					<li>Loading...</li>
@@ -49,7 +41,7 @@
 						switch(ui.newTab.index()) {
 							// Running Apps
 							case 0:
-								$.post('/list-apps', { all: false }, function(data) {
+								$.post('/list-containers', { all: false }, function(data) {
 									$('#running .app-list').empty();
 									data = JSON.parse(data);
 									for (var i = 0, len = data.length; i < len; ++i) {
@@ -59,7 +51,7 @@
 								break;
 							// All Apps
 							case 1:
-								$.post('/list-apps', { all: true }, function(data) {
+								$.post('/list-images', {}, function(data) {
 									$('#all .app-list').empty();
 									data = JSON.parse(data);
 									for (var i = 0, len = data.length; i < len; ++i) {
@@ -71,7 +63,14 @@
 							case 2:
 								$.post('/list-store', {}, function(data) {
 									$('#store .app-list').empty();
-									$('<li></li>').text(data).appendTo('#store .app-list');
+									data = JSON.parse(data);
+									for (var i = 0, len = data.repositories.length; i < len; ++i) {
+										sanitizedText = $('<div/>')
+										var li = $('<li></li>');
+										$('<p></p>').text(data.repositories[i]).appendTo(li);
+										$('<button>Pull</button>').appendTo(li);
+										li.appendTo('#store .app-list');
+									}
 								});
 								break;
 							// My Data
@@ -82,27 +81,33 @@
 						}
 					}
 				});
-			});
 
-			$.post('/list-apps', { all: false }, function(data) {
-				$('#running .app-list').empty();
-				data = JSON.parse(data);
-				for (var i = 0, len = data.length; i < len; ++i) {
-					$('<li></li>').text(JSON.stringify(data[i])).appendTo('#running .app-list');
-				}
-			});
-
-			function updateStatus() {
-				$.post('/get-broker-status', {}, function(status) {
-					$('#broker-status').text(status);
+				$.post('/list-apps', { all: false }, function(data) {
+					$('#running .app-list').empty();
+					data = JSON.parse(data);
+					for (var i = 0, len = data.length; i < len; ++i) {
+						$('<li></li>').text(JSON.stringify(data[i])).appendTo('#running .app-list');
+					}
 				});
-			}
-			updateStatus();
-			setInterval(updateStatus, 2000);
 
-			$('#broker-status-toggle-button').click(function(event) {
-				$.post('/toggle-broker-status', {}, function(status) {
-					$('#broker-status').text(status);
+				function updateStatus() {
+					$.post('/get-broker-status', {}, function(status) {
+						$('#broker-status').text(status);
+					});
+				}
+				updateStatus();
+				setInterval(updateStatus, 2000);
+
+				$('#broker-status-toggle-button').click(function(event) {
+					$.post('/toggle-broker-status', {}, function(status) {
+						$('#broker-status').text(status);
+					});
+				});
+
+				$('#hello-world-launch').click(function(event) {
+					$.post('/launch-app', { name: 'databox-hello-world', tag: 'latest' }, function(status) {
+						console.log(status);
+					});
 				});
 			});
 		</script>
