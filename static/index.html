@@ -51,7 +51,8 @@
 			</div>
 			<div class="tab-pane fade" id="running">
 				<div class="container">
-					<ul class="list-group"></ul>
+					<p>Click for app UI</p>
+					<div class="list-group"></div>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="all">
@@ -78,7 +79,7 @@
 							$('#running .list-group').empty();
 							data = JSON.parse(data);
 							for (var i = 0, len = data.length; i < len; ++i) {
-								var li = $('<li class="list-group-item"></li>')
+								var li = $('<button type="button" class="list-group-item"></button>')
 								$('<pre></pre>').text(JSON.stringify(data[i], null, 2)).appendTo(li);
 								li.appendTo('#running .list-group');
 							}
