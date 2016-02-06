@@ -17,11 +17,10 @@ get-broker = (callback) !->
   if container?
     callback container
     return
-  auth =
-    serveraddress: "https://#registry-url/v2"
-  err, stream <-! docker.pull 'databox-data-broker:latest' authconfig: auth
+  err, stream <-! docker.pull "#registry-url/databox-data-broker:latest"
+  stream.pipe process.stdout
+  <-! stream.on \end
   err, broker <-! docker.create-container Image: "#registry-url/databox-data-broker:latest" name: \broker Tty: true
-  console.log err
   err, stream <-! broker.attach stream: true stdout: true stderr: true
   stream.pipe process.stdout
   callback broker
@@ -67,12 +66,9 @@ app.post '/list-store' (req, res) !->
   res.end body
 
 app.post '/pull-app' (req, res) !->
-  auth =
-    serveraddress: "https://#registry-url/v2"
-
   name = req.body.name
   tag  = req.body.tag or \latest
-  err, stream <-! docker.pull "#name:#tag" authconfig: auth
+  err, stream <-! docker.pull "#registry-url/#name:#tag"
   stream.pipe res
 
 app.post '/launch-app' (req, res) !->
