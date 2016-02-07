@@ -44,19 +44,30 @@
 		<div class="tab-content">
 			<div class="tab-pane fade in active" id="overview">
 				<div class="container">
-					<p>Broker Status: <span id="broker-status">Running</span></p>
-					<button id="broker-status-toggle-button">Toggle Broker Status</button>
-					<p>Some kind of native data overview app</p>
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h3 class="panel-title">Broker Info</h3>
+						</div>
+						<div class="panel-body">
+							Status: <span id="broker-status">Running</span>
+							<button id="broker-status-toggle-button" type="button" class="btn btn-default" data-loading-text="Toggling..." autocomplete="off" style="float: right;">Toggle</button>
+						</div>
+					</div>
+					<div class="jumbotron">
+						<h4>Some kind of native data overview app</h4>
+						<p>...</p>
+					</div>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="running">
 				<div class="container">
-					<p>Click for app UI</p>
+					<div class="alert alert-info" role="alert">Click an app for it's UI; non-app containers (e.g. broker) are not yet filtered.</div>
 					<div class="list-group"></div>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="all">
 				<div class="container">
+					<div class="alert alert-warning" role="alert"><strong>Warning:</strong> Non-databox Docker containers are not yet filtered.</div>
 					<ul class="list-group"></ul>
 				</div>
 			</div>
@@ -103,8 +114,8 @@
 							for (var i = 0, len = data.repositories.length; i < len; ++i) {
 								sanitizedText = $('<div/>')
 								var li = $('<li class="list-group-item"></li>');
-								$('<p></p>').text(data.repositories[i]).appendTo(li);
-								$('<button>Pull</button>').appendTo(li);
+								$('<p style="display: inline-block; font-weight: bold;"></p>').text(data.repositories[i]).appendTo(li);
+								$('<button type="button" class="btn btn-default" data-loading-text="Pulling..." autocomplete="off" style="float: right;">Pull</button>').appendTo(li);
 								li.appendTo('#store .list-group');
 							}
 						});
@@ -134,8 +145,10 @@
 				setInterval(updateStatus, 2000);
 
 				$('#broker-status-toggle-button').click(function(event) {
+					var btn = $(this).button('loading');
 					$.post('/toggle-broker-status', {}, function(status) {
 						$('#broker-status').text(status);
+						btn.button('reset');
 					});
 				});
 
