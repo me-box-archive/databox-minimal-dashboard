@@ -72,10 +72,8 @@ app.post '/pull-app' (req, res) !->
   stream.pipe res
 
 app.post '/launch-app' (req, res) !->
-  name = req.body.name
-  tag  = req.body.tag or \latest
   err, port <-! portfinder.get-port
-  err, container <-! docker.create-container Image: "#registry-url/#name:#tag" name
+  err, container <-! docker.create-container Image: req.body.repo-tag
   err, data <-! container.start PortBindings: '8080/tcp': [ HostPort: "#port" ] #Binds: [ "#__dirname/apps/#name:/./:rw" ]
   { port } |> JSON.stringify |> res.end
 

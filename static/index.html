@@ -16,6 +16,10 @@
 				min-height: 2000px;
 				padding-top: 70px;
 			}
+			#app-ui-iframe {
+				width: 100%;
+				height: 100%;
+			}
 		</style>
 	</head>
 	<body>
@@ -61,14 +65,16 @@
 			</div>
 			<div class="tab-pane fade" id="running">
 				<div class="container">
-					<div class="alert alert-info" role="alert">Click an app for it's UI; non-app containers (e.g. broker) are not yet filtered.</div>
+					<div class="alert alert-info" role="alert"><strong>Info:</strong> Click an app for it's UI</div>
+					<div class="alert alert-warning" role="alert"><strong>Warning:</strong> Non-app Docker containers (e.g. broker) are not yet filtered</div>
 					<div class="list-group"></div>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="all">
 				<div class="container">
-					<div class="alert alert-warning" role="alert"><strong>Warning:</strong> Non-databox Docker containers are not yet filtered.</div>
-					<ul class="list-group"></ul>
+					<div class="alert alert-info" role="alert"><strong>Info:</strong> Click an app to run</div>
+					<div class="alert alert-warning" role="alert"><strong>Warning:</strong> Non-databox Docker containers are not yet filtered</div>
+					<div class="list-group"></div>
 				</div>
 			</div>
 			<div class="tab-pane fade" id="store">
@@ -82,42 +88,76 @@
 			</div>
 		</div>
 
+		<div class="modal fade" id="app-ui" tabindex="-1" role="dialog" aria-labelledby="app-ui-label">
+			<div class="modal-dialog" role="document">
+				<div class="modal-content">
+					<div class="modal-header">
+						<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+						<h4 id="app-ui-title" class="modal-title" id="app-ui-label">Databox App</h4>
+					</div>
+					<div class="modal-body">
+						<iframe id="app-ui-iframe" sandbox="allow-forms allow-scripts"></iframe>
+					</div>
+					<div class="modal-footer">
+					</div>
+				</div>
+			</div>
+		</div>
+
 		<script>
 			$('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 				switch($(e.target).attr('href')) {
 					case '#running':
 						$.post('/list-containers', { all: false }, function(data) {
 							$('#running .list-group').empty();
-							data = JSON.parse(data);
-							for (var i = 0, len = data.length; i < len; ++i) {
-								var li = $('<button type="button" class="list-group-item"></button>')
-								$('<pre></pre>').text(JSON.stringify(data[i], null, 2)).appendTo(li);
+							JSON.parse(data).forEach(function(container) {
+								var hasUI = container.Ports.length > 0;
+								var li = $('<button type="button" class="list-group-item"' + (hasUI ? ' data-toggle="modal" data-target="#app-ui"' : '') + '></button>')
+								$('<pre></pre>').text(JSON.stringify(container, null, 2)).appendTo(li);
+								li.click(function(event) {
+									if (hasUI) {
+										$('#app-ui-title').text(container.Image);
+										$('#app-ui-iframe').attr('src', '//' + window.location.hostname + ':' + container.Ports[0].PublicPort);
+									} else {
+										alert('This app has no UI');
+									}
+								});
 								li.appendTo('#running .list-group');
-							}
+							});
 						});
 						break;
 					case '#all':
 						$.post('/list-images', {}, function(data) {
 							$('#all .list-group').empty();
-							data = JSON.parse(data);
-							for (var i = 0, len = data.length; i < len; ++i) {
-								var li = $('<li class="list-group-item"></li>')
-								$('<pre></pre>').text(JSON.stringify(data[i], null, 2)).appendTo(li);
+							JSON.parse(data).forEach(function(image) {
+								var li = $('<button type="button" class="list-group-item"></button>')
+								$('<pre></pre>').text(JSON.stringify(image, null, 2)).appendTo(li);
+								li.click(function(event) {
+									$.post('/launch-app', { repoTag: image.RepoTags[0] }, function(response) {
+										alert('App launched: ' + response);
+									});
+								});
 								li.appendTo('#all .list-group');
-							}
+							});
 						});
 						break;
 					case '#store':
 						$.post('/list-store', {}, function(data) {
 							$('#store .list-group').empty();
-							data = JSON.parse(data);
-							for (var i = 0, len = data.repositories.length; i < len; ++i) {
+							JSON.parse(data).repositories.forEach(function(repository){
 								sanitizedText = $('<div/>')
 								var li = $('<li class="list-group-item"></li>');
-								$('<p style="display: inline-block; font-weight: bold;"></p>').text(data.repositories[i]).appendTo(li);
-								$('<button type="button" class="btn btn-default" data-loading-text="Pulling..." autocomplete="off" style="float: right;">Pull</button>').appendTo(li);
+								$('<p style="display: inline-block; font-weight: bold;"></p>').text(repository).appendTo(li);
+								var btn = $('<button type="button" class="btn btn-default" data-loading-text="Pulling..." autocomplete="off" style="float: right;">Pull</button>').appendTo(li);
+								btn.click(function(event) {
+									var btn = $(this).button('loading');
+									$.post('/pull-app', { name: repository }, function(response) {
+										alert(response);
+										btn.button('reset');
+									});
+								});
 								li.appendTo('#store .list-group');
-							}
+							});
 						});
 						break;
 					default:
