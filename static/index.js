@@ -59,6 +59,14 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 });
 
 $(function() {
+	function checkTwitterSignedIn() {
+		$.get('//localhost:7999/twitter/is-signed-in', {}, function(isSignedIn) {
+			if (isSignedIn === 'false')
+				$('#twitter-sign-in-button').show();
+		});
+	}
+	checkTwitterSignedIn();
+
 	$.post('/list-containers', { all: false }, function(data) {
 		$('#running .list-group').empty();
 		data = JSON.parse(data);
@@ -81,7 +89,8 @@ $(function() {
 		var btn = $(this).button('loading');
 		$.post('/toggle-broker-status', {}, function(status) {
 			$('#broker-status').text(status);
-			$('#broker-ui-iframe').attr('src', function (i, val) { return val; });
+			// TODO: Actually make the server message
+			setTimeout(checkTwitterSignedIn, 1000);
 			btn.button('reset');
 		});
 	});
