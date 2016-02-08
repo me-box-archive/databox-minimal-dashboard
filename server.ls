@@ -42,7 +42,7 @@ app.post '/toggle-broker-status' (req, res) !->
   broker <-! get-broker
   err, data <-! broker.inspect
   if data.State.Status is \created or data.State.Status is \exited
-    err, data <-! broker.start
+    err, data <-! broker.start PortBindings: '7999/tcp': [ HostPort: \7999 ]
     err, data <-! broker.inspect
     res.end data.State.Status
   else

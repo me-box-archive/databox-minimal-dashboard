@@ -53,8 +53,11 @@
 							<h3 class="panel-title">Broker Info</h3>
 						</div>
 						<div class="panel-body">
-							Status: <span id="broker-status">Running</span>
-							<button id="broker-status-toggle-button" type="button" class="btn btn-default" data-loading-text="Toggling..." autocomplete="off" style="float: right;">Toggle</button>
+							<div>
+								Status: <span id="broker-status">Running</span>
+								<button id="broker-status-toggle-button" type="button" class="btn btn-default" data-loading-text="Toggling..." autocomplete="off" style="float: right;">Toggle</button>
+							</div>
+							<iframe id="broker-ui-iframe" sandbox="allow-forms allow-scripts" src="//localhost:7999"></iframe>
 						</div>
 					</div>
 					<div class="jumbotron">
@@ -188,6 +191,7 @@
 					var btn = $(this).button('loading');
 					$.post('/toggle-broker-status', {}, function(status) {
 						$('#broker-status').text(status);
+						$('#broker-ui-iframe').attr('src', function (i, val) { return val; });
 						btn.button('reset');
 					});
 				});
