@@ -1,4 +1,12 @@
-require! { process, dockerode: Docker, express, 'body-parser', request, fs, portfinder }
+require! {
+  process
+  dockerode: Docker
+  express
+  'body-parser'
+  request
+  fs
+  portfinder
+}
 
 const registry-url = 'amar.io:5000'
 
@@ -29,7 +37,13 @@ app = express!
 
 app.enable 'trust proxy'
 
-app.use express.static 'static'
+app.use express.static \www
+
+app.set \views \www
+app.set 'view engine' \jade
+
+app.get \/ (req, res) !->
+  res.render \index
 
 app.use body-parser.urlencoded extended: false
 
