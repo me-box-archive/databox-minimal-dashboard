@@ -24,11 +24,13 @@
   "homepage": "https://github.com/yousefamar/databox-minimal-dashboard#readme",
   "dependencies": {
     "body-parser": "^1.14.2",
+    "docker-events": "0.0.2",
     "dockerode": "^2.2.9",
     "express": "^4.13.4",
     "jade": "^1.11.0",
     "livescript": "^1.4.0",
     "portfinder": "^1.0.0",
-    "request": "^2.69.0"
+    "request": "^2.69.0",
+    "socket.io": "^1.4.5"
   }
 }

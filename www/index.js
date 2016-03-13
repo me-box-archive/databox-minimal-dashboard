@@ -83,7 +83,6 @@ $(function() {
 		});
 	}
 	updateStatus();
-	setInterval(updateStatus, 2000);
 
 	$('#broker-status-toggle-button').click(function(event) {
 		var btn = $(this).button('loading');
@@ -101,3 +100,33 @@ $(function() {
 		});
 	});
 });
+
+var socket = io.connect(window.location.protocol + '//' + window.location.host);
+socket.on('docker-connect', function () {
+	console.log('connect');
+});
+socket.on('docker-disconnect', function () {
+	console.log('disconnect');
+});
+//socket.on('docker-_message', function (message) {
+//	console.log(message);
+//});
+socket.on('docker-create', function (message) {
+	console.log(message);
+});
+socket.on('docker-start', function (message) {
+	console.log(message);
+});
+socket.on('docker-stop', function (message) {
+	console.log(message);
+});
+socket.on('docker-die', function (message) {
+	console.log(message);
+});
+socket.on('docker-destroy', function (message) {
+	console.log(message);
+});
+socket.on('echo', function (data) {
+	console.log(data);
+});
+socket.emit('echo', 'test');

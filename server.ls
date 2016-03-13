@@ -1,11 +1,13 @@
 require! {
-  process
+  http
   dockerode: Docker
   express
   'body-parser'
   request
   fs
   portfinder
+  \socket.io : io
+  \docker-events : DockerEvents
 }
 
 const registry-url = 'amar.io:5000'
@@ -34,6 +36,8 @@ get-broker = (callback) !->
   callback broker
 
 app = express!
+server = http.create-server app
+io = io server
 
 app.enable 'trust proxy'
 
@@ -46,6 +50,22 @@ app.get \/ (req, res) !->
   res.render \index
 
 app.use body-parser.urlencoded extended: false
+
+io.on \connection (socket) !->
+  emitter = new DockerEvents { docker }
+    ..on \connect    !-> socket.emit \docker-connect
+    ..on \disconnect !-> socket.emit \docker-disconnect
+    ..on \_message   !-> socket.emit \docker-_message   it
+    ..on \create     !-> socket.emit \docker-create     it
+    ..on \start      !-> socket.emit \docker-start      it
+    ..on \stop       !-> socket.emit \docker-stop       it
+    ..on \die        !-> socket.emit \docker-die        it
+    ..on \destroy    !-> socket.emit \docker-destroy    it
+    ..start!
+
+  socket.on \disconnect !-> emitter.stop!
+
+  socket.on \echo !-> socket.emit \echo it
 
 app.post '/get-broker-status' (req, res) !->
   broker <-! get-broker
@@ -95,4 +115,4 @@ app.post '/400' (req, res) !->
   res.write-head 400
   res.end!
 
-app.listen (process.env.PORT or 8080)
+server.listen (process.env.PORT or 8080)
