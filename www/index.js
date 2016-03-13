@@ -10,7 +10,7 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 					li.click(function(event) {
 						if (hasUI) {
 							$('#app-ui-title').text(container.Image);
-							$('#app-ui-iframe').attr('src', '//' + window.location.hostname + ':' + container.Ports[0].PublicPort);
+							$('#app-ui-iframe').attr('src', container.Names[0]);
 						} else {
 							alert('This app has no UI');
 						}
@@ -60,7 +60,7 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 
 $(function() {
 	function checkTwitterSignedIn() {
-		$.get('//localhost:7999/twitter/is-signed-in', {}, function(isSignedIn) {
+		$.get('/broker/twitter/is-signed-in', {}, function(isSignedIn) {
 			if (isSignedIn === 'false')
 				$('#twitter-sign-in-button').show();
 		});
@@ -129,4 +129,4 @@ socket.on('docker-destroy', function (message) {
 socket.on('echo', function (data) {
 	console.log(data);
 });
-socket.emit('echo', 'test');
+socket.emit('echo', 'echo');

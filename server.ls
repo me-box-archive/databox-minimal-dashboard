@@ -8,6 +8,7 @@ require! {
   portfinder
   \socket.io : io
   \docker-events : DockerEvents
+  \http-proxy-middleware : proxy
 }
 
 const registry-url = 'amar.io:5000'
@@ -67,6 +68,13 @@ io.on \connection (socket) !->
 
   socket.on \echo !-> socket.emit \echo it
 
+app.use proxy \/broker do
+  target: \http://localhost:7999
+  change-origin: true
+  ws: true
+  path-rewrite:
+    '^/broker': '/'
+
 app.post '/get-broker-status' (req, res) !->
   broker <-! get-broker
   err, data <-! broker.inspect
@@ -106,10 +114,18 @@ app.post '/pull-app' (req, res) !->
   stream.pipe res
 
 app.post '/launch-app' (req, res) !->
+  # TODO: Handle potential namespace collisions
+  name = req.body.repo-tag.match /\/.+(?=:)/ .[0]
+  console.log name
   err, port <-! portfinder.get-port
-  err, container <-! docker.create-container Image: req.body.repo-tag
+  err, container <-! docker.create-container Image: req.body.repo-tag, name: name
   err, data <-! container.start PortBindings: '8080/tcp': [ HostPort: "#port" ] #Binds: [ "#__dirname/apps/#name:/./:rw" ]
-  { port } |> JSON.stringify |> res.end
+  app.use proxy name, do
+    target: "http://localhost:#port"
+    ws: true
+    path-rewrite:
+      "^#name": '/'
+  { name, port } |> JSON.stringify |> res.end
 
 app.post '/400' (req, res) !->
   res.write-head 400
