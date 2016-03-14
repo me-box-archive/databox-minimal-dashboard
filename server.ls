@@ -70,7 +70,6 @@ io.on \connection (socket) !->
 
 app.use proxy \/broker do
   target: \http://localhost:7999
-  change-origin: true
   ws: true
   path-rewrite:
     '^/broker': '/'
