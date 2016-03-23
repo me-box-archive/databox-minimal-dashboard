@@ -117,7 +117,7 @@ app.post '/launch-app' (req, res) !->
   name = req.body.repo-tag.match /\/.+(?=:)/ .[0]
   err, port <-! portfinder.get-port
   err, container <-! docker.create-container Image: req.body.repo-tag, name: name
-  err, data <-! container.start PortBindings: '8080/tcp': [ HostPort: "#port" ] #Binds: [ "#__dirname/apps/#name:/./:rw" ]
+  err, data <-! container.start Links: [ \broker ], PortBindings: '8080/tcp': [ HostPort: "#port" ] #Binds: [ "#__dirname/apps/#name:/./:rw" ]
   app.use proxy name, do
     target: "http://localhost:#port"
     ws: true
