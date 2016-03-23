@@ -115,7 +115,6 @@ app.post '/pull-app' (req, res) !->
 app.post '/launch-app' (req, res) !->
   # TODO: Handle potential namespace collisions
   name = req.body.repo-tag.match /\/.+(?=:)/ .[0]
-  console.log name
   err, port <-! portfinder.get-port
   err, container <-! docker.create-container Image: req.body.repo-tag, name: name
   err, data <-! container.start PortBindings: '8080/tcp': [ HostPort: "#port" ] #Binds: [ "#__dirname/apps/#name:/./:rw" ]
@@ -124,6 +123,9 @@ app.post '/launch-app' (req, res) !->
     ws: true
     path-rewrite:
       "^#name": '/'
+    on-proxy-res: !->
+      it.headers['Access-Control-Allow-Origin'] = \*
+      it.headers['Access-Control-Allow-Headers'] = 'X-Requested-With'
   { name, port } |> JSON.stringify |> res.end
 
 app.post '/400' (req, res) !->

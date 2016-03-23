@@ -10,7 +10,7 @@ $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
 					li.click(function(event) {
 						if (hasUI) {
 							$('#app-ui-title').text(container.Image);
-							$('#app-ui-iframe').attr('src', container.Names[0]);
+							$('#app-ui-iframe').attr('src', container.Names[0] + '/');
 						} else {
 							alert('This app has no UI');
 						}
